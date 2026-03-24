@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Vista Al Mar • Gestión Pro</title>
+    <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --google-blue: #1a73e8;
+            --google-red: #ea4335;
+            --google-yellow: #fbbc04;
+            --google-green: #34a853;
+            --bg-light: #f8f9fa;
+            --card-bg: #ffffff;
+            --text-primary: #202124;
+            --text-secondary: #5f6368;
+            --nav-height: 70px;
+            --radius-xl: 28px;
+            --radius-md: 16px;
+            --shadow: 0 1px 3px rgba(60,64,67,0.1), 0 4px 8px rgba(60,64,67,0.1);
+        }
+
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        
+        body { 
+            font-family: 'Roboto', sans-serif; 
+            background-color: var(--bg-light); 
+            color: var(--text-primary); 
+            margin: 0; 
+            padding-bottom: calc(var(--nav-height) + 20px);
+            overflow-x: hidden;
+        }
+
+        header { 
+            background: var(--card-bg); 
+            padding: 16px 20px; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center;
+            border-bottom: 1px solid #dadce0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        h1 { font-family: 'Google Sans', sans-serif; font-size: 1.2rem; color: var(--google-blue); margin: 0; }
+
+        .container { padding: 16px; max-width: 600px; margin: 0 auto; }
+
+        /* --- BOTONES ESTILO GOOGLE --- */
+        button { 
+            border: none; 
+            font-family: 'Google Sans', sans-serif; 
+            font-weight: 500; 
+            cursor: pointer; 
+            display: inline-flex; 
+            align-items: center; 
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.2s;
+        }
+        .btn-fab { 
+            background: var(--google-blue); 
+            color: white; 
+            padding: 12px 24px; 
+            border-radius: var(--radius-xl); 
+            box-shadow: var(--shadow);
+            font-size: 0.95rem;
+        }
+        .btn-outline { background: white; border: 1px solid #dadce0; color: var(--google-blue); padding: 8px 16px; border-radius: 20px; font-size: 0.85rem; }
+        .btn-icon { background: #f1f3f4; width: 40px; height: 40px; border-radius: 50%; color: var(--text-secondary); }
+        .btn-danger { background: #fce8e6; color: var(--google-red); padding: 6px 12px; border-radius: 12px; font-size: 0.8rem; }
+
+        /* --- NAVEGACIÓN INFERIOR (ESTILO MOBILE APP) --- */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: var(--nav-height);
+            background: var(--card-bg);
+            border-top: 1px solid #dadce0;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            z-index: 1000;
+            padding-bottom: env(safe-area-inset-bottom);
+        }
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.7rem;
+            font-weight: 500;
+            flex: 1;
+        }
+        .nav-item svg { width: 24px; height: 24px; fill: currentColor; }
+        .nav-item.active { color: var(--google-blue); }
+
+        /* --- CARDS Y SECCIONES --- */
+        .card { 
+            background: var(--card-bg); 
+            border-radius: var(--radius-md); 
+            padding: 20px; 
+            margin-bottom: 16px; 
+            border: 1px solid #dadce0;
+        }
+        .section-title { 
+            font-family: 'Google Sans', sans-serif; 
+            font-size: 1.1rem; 
+            margin-bottom: 16px; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center;
+        }
+
+        /* --- TABLA AGENDA --- */
+        .table-wrapper { overflow-x: auto; border-radius: 12px; border: 1px solid #e0e0e0; margin-top: 10px; }
+        .agenda-table { width: 100%; border-collapse: collapse; font-size: 0.75rem; min-width: 600px; }
+        .agenda-table th { background: #f8f9fa; padding: 12px 8px; text-align: left; border-bottom: 1px solid #e0e0e0; color: var(--text-secondary); text-transform: uppercase; font-size: 0.65rem; }
+        .agenda-table td { padding: 12px 8px; border-bottom: 1px solid #f1f3f4; }
+        .day-sep { border-top: 2px solid var(--google-blue); }
+
+        /* --- MODALES TIPO "SHEET" --- */
+        .modal { 
+            display: none; 
+            position: fixed; 
+            top: 0; left: 0; 
+            width: 100%; height: 100%; 
+            background: rgba(0,0,0,0.4); 
+            z-index: 2000; 
+            align-items: flex-end; 
+        }
+        .modal-content { 
+            background: white; 
+            width: 100%; 
+            border-radius: 28px 28px 0 0; 
+            padding: 24px; 
+            max-height: 90vh; 
+            overflow-y: auto;
+            animation: slideUp 0.3s ease-out;
+        }
+        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+
+        /* --- FORMULARIOS --- */
+        .form-group { margin-bottom: 16px; }
+        .form-group label { display: block; font-size: 0.8rem; font-weight: 500; margin-bottom: 6px; color: var(--text-secondary); }
+        input, select, textarea { 
+            width: 100%; 
+            padding: 12px 16px; 
+            border-radius: 14px; 
+            border: 1px solid #dadce0; 
+            font-size: 1rem; 
+            background: #f8f9fa;
+            outline: none;
+        }
+        input:focus { border-color: var(--google-blue); background: white; }
+
+        /* --- CHIPS DE DÍAS --- */
+        .chip-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 8px; }
+        .chip-input { display: none; }
+        .chip-label { 
+            padding: 8px; 
+            text-align: center; 
+            background: white; 
+            border: 1px solid #dadce0; 
+            border-radius: 12px; 
+            font-size: 0.75rem; 
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .chip-input:checked + .chip-label { background: #e8f0fe; color: var(--google-blue); border-color: var(--google-blue); font-weight: 700; }
+
+        /* --- TOGGLE ANCIANO --- */
+        .switch-group { display: flex; align-items: center; justify-content: space-between; padding: 12px; background: #f8f9fa; border-radius: 16px; margin-bottom: 16px; }
+        
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+
+        .hidden { display: none !important; }
+
+        /* --- GRUPOS LISTA --- */
+        .group-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .group-card { padding: 16px; border-radius: 16px; border: 1px solid #eee; background: #fafafa; }
+        .group-card h3 { margin: 0 0 4px 0; font-size: 0.9rem; color: var(--google-blue); }
+        .group-card p { margin: 0; font-size: 0.75rem; color: var(--text-secondary); }
+
+        /* --- ICONOS SVG --- */
+        .svg-icon { width: 20px; height: 20px; vertical-align: middle; }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>Vista Al Mar</h1>
+    <div style="display:flex; gap:8px;">
+        <button class="btn-icon" onclick="exportarDatos()" title="Exportar Copia">
+            <svg class="svg-icon" viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z" fill="currentColor"/></svg>
+        </button>
+        <button class="btn-icon" onclick="document.getElementById('fileImport').click()" title="Importar Copia">
+            <svg class="svg-icon" viewBox="0 0 24 24"><path d="M9 16h6v-6h4l-7-7-7 7h4v6zm-4 2h14v2H5v-2z" fill="currentColor"/></svg>
+        </button>
+        <input type="file" id="fileImport" class="hidden" accept=".json" onchange="importarDatos(event)">
+    </div>
+</header>
+
+<div class="container">
+    <!-- AGENDA -->
+    <div id="tab-agenda" class="tab-content active">
+        <div class="card">
+            <div class="section-title">Generar Agenda</div>
+            <div class="form-group">
+                <select id="mesAgenda">
+                    <option value="1">Enero</option><option value="2">Febrero</option><option value="3">Marzo</option>
+                    <option value="4">Abril</option><option value="5">Mayo</option><option value="6">Junio</option>
+                    <option value="7">Julio</option><option value="8">Agosto</option><option value="9">Septiembre</option>
+                    <option value="10">Octubre</option><option value="11">Noviembre</option><option value="12">Diciembre</option>
+                </select>
+            </div>
+            <div style="display:flex; gap:10px;">
+                <button class="btn-fab" style="flex:1" onclick="generarAgenda()">Generar Todo</button>
+                <button class="btn-outline" onclick="openModal('modalHistorial')">Historial</button>
+            </div>
+        </div>
+
+        <div id="resAgenda" class="card hidden">
+            <div class="section-title">Resultados</div>
+            <div class="table-wrapper">
+                <div id="captureArea" style="background:white; padding:10px;">
+                    <h2 id="titCap" style="text-align:center; font-family:'Google Sans'; color:var(--google-blue); margin:10px 0 5px 0; font-size:1.1rem;"></h2>
+                    <table class="agenda-table">
+                        <thead><tr><th>Día</th><th>N°</th><th>Hora</th><th>Conductor</th><th>Territorio</th><th>Lugar</th></tr></thead>
+                        <tbody id="cuerpoAgenda"></tbody>
+                    </table>
+                </div>
+            </div>
+            <div style="margin-top:15px; display:flex; gap:10px; flex-wrap:wrap;">
+                <button class="btn-outline" onclick="oficializarAgenda()">Guardar como Oficial</button>
+                <button class="btn-outline" onclick="exportarImagen()">Bajar Imagen</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- PERSONAL -->
+    <div id="tab-personal" class="tab-content">
+        <div class="section-title">Conductores <button class="btn-outline" onclick="abrirConductor()">+ Nuevo</button></div>
+        <div id="listaConductores"></div>
+    </div>
+
+    <!-- TERRITORIOS -->
+    <div id="tab-territorios" class="tab-content">
+        <div class="section-title">Territorios <button class="btn-outline" onclick="abrirTerritorio()">+ Nuevo</button></div>
+        <div id="listaTerritorios"></div>
+    </div>
+
+    <!-- GRUPOS -->
+    <div id="tab-grupos" class="tab-content">
+        <div class="card">
+            <div class="section-title">Estructura de Congre</div>
+            <p style="font-size:0.8rem; color:var(--text-secondary); margin-bottom:15px;">Hay 8 grupos oficiales. Los ancianos se asignan automáticamente al grupo configurado en su perfil.</p>
+            <div id="listaGrupos8" class="group-grid"></div>
+        </div>
+    </div>
+</div>
+
+<!-- NAV INFERIOR -->
+<nav class="bottom-nav">
+    <a href="#" class="nav-item active" onclick="switchTab('tab-agenda')">
+        <svg viewBox="0 0 24 24"><path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10zm0-12H5V6h14v2z"/></svg>
+        <span>Agenda</span>
+    </a>
+    <a href="#" class="nav-item" onclick="switchTab('tab-personal')">
+        <svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+        <span>Personal</span>
+    </a>
+    <a href="#" class="nav-item" onclick="switchTab('tab-territorios')">
+        <svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+        <span>Mapa</span>
+    </a>
+    <a href="#" class="nav-item" onclick="switchTab('tab-grupos')">
+        <svg viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5s-3 1.34-3 3 1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
+        <span>Grupos</span>
+    </a>
+</nav>
+
+<!-- MODAL CONDUCTOR -->
+<div id="modalConductor" class="modal">
+    <div class="modal-content">
+        <h2 class="section-title">Ficha del Conductor</h2>
+        <form id="formConductor">
+            <input type="hidden" id="cId">
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px;">
+                <div class="form-group"><label>Nombre</label><input type="text" id="cNombre" required></div>
+                <div class="form-group"><label>Apellido</label><input type="text" id="cApellido" required></div>
+            </div>
+            <div class="form-group"><label>WhatsApp</label><input type="tel" id="cTel" placeholder="584120000000" required></div>
+            
+            <div class="switch-group">
+                <span>¿Es Anciano?</span>
+                <input type="checkbox" id="cEsAnciano" style="width:40px;">
+            </div>
+            
+            <div id="cBoxGrupo" class="form-group hidden">
+                <label>Grupo de Predicación (1-8)</label>
+                <select id="cGrupo">
+                    <option value="1">Grupo 1</option><option value="2">Grupo 2</option><option value="3">Grupo 3</option><option value="4">Grupo 4</option>
+                    <option value="5">Grupo 5</option><option value="6">Grupo 6</option><option value="7">Grupo 7</option><option value="8">Grupo 8</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Fechas Especiales (Opcional)</label>
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+                    <div><small>Puede este día:</small><input type="date" id="cFechaSi"></div>
+                    <div><small>No puede este día:</small><input type="date" id="cFechaNo"></div>
+                </div>
+            </div>
+
+            <label>Disponibilidad Semanal</label>
+            <div class="chip-grid" style="margin-top:8px;">
+                <input type="checkbox" id="d_l_a" value="LUN-AM" class="chip-input"><label for="d_l_a" class="chip-label">LUN AM</label>
+                <input type="checkbox" id="d_l_p" value="LUN-PM" class="chip-input"><label for="d_l_p" class="chip-label">LUN PM</label>
+                <input type="checkbox" id="d_ma_a" value="MAR-AM" class="chip-input"><label for="d_ma_a" class="chip-label">MAR AM</label>
+                <input type="checkbox" id="d_ma_p" value="MAR-PM" class="chip-input"><label for="d_ma_p" class="chip-label">MAR PM</label>
+                <input type="checkbox" id="d_mi_a" value="MIÉ-AM" class="chip-input"><label for="d_mi_a" class="chip-label">MIÉ AM</label>
+                <input type="checkbox" id="d_j_a" value="JUE-AM" class="chip-checkbox chip-input"><label for="d_j_a" class="chip-label">JUE AM</label>
+                <input type="checkbox" id="d_j_p" value="JUE-PM" class="chip-input"><label for="d_j_p" class="chip-label">JUE PM</label>
+                <input type="checkbox" id="d_v_a" value="VIE-AM" class="chip-input"><label for="d_v_a" class="chip-label">VIE AM</label>
+                <input type="checkbox" id="d_v_p" value="VIE-PM" class="chip-input"><label for="d_v_p" class="chip-label">VIE PM</label>
+                <input type="checkbox" id="d_s_a" value="SÁB-AM" class="chip-input"><label for="d_s_a" class="chip-label">SÁB AM</label>
+                <input type="checkbox" id="d_d_a" value="DOM-AM" class="chip-input"><label for="d_d_a" class="chip-label">DOM AM</label>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn-outline" onclick="closeModal('modalConductor')">Cancelar</button>
+                <button type="submit" class="btn-fab">Guardar</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- MODAL TERRITORIO -->
+<div id="modalTerritorio" class="modal">
+    <div class="modal-content">
+        <h2 class="section-title">Detalle del Territorio</h2>
+        <form id="formTerritorio">
+            <input type="hidden" id="tId">
+            <div style="display:grid; grid-template-columns:1fr 3fr; gap:12px;">
+                <div class="form-group"><label>N°</label><input type="number" id="tNum" required></div>
+                <div class="form-group"><label>Nombre</label><input type="text" id="tNom" required></div>
+            </div>
+            <div class="form-group"><label>Encuentro</label><input type="text" id="tLug"></div>
+            
+            <label>Días y Horarios Territorio Principal</label>
+            <div class="chip-grid" style="margin-top:8px;">
+                <input type="checkbox" id="t_l" value="LUN" class="chip-input"><label for="t_l" class="chip-label">LUN</label>
+                <input type="checkbox" id="t_ma" value="MAR" class="chip-input"><label for="t_ma" class="chip-label">MAR</label>
+                <input type="checkbox" id="t_mi" value="MIÉ" class="chip-input"><label for="t_mi" class="chip-label">MIÉ</label>
+                <input type="checkbox" id="t_j" value="JUE" class="chip-input"><label for="t_j" class="chip-label">JUE</label>
+                <input type="checkbox" id="t_v" value="VIE" class="chip-input"><label for="t_v" class="chip-label">VIE</label>
+                <input type="checkbox" id="t_s" value="SÁB" class="chip-input"><label for="t_s" class="chip-label">SÁB</label>
+                <input type="checkbox" id="t_d" value="DOM" class="chip-input"><label for="t_d" class="chip-label">DOM</label>
+            </div>
+            <div class="chip-grid" style="margin-top:8px;">
+                <input type="checkbox" id="th_9" value="09:00 AM" class="chip-input"><label for="th_9" class="chip-label">9 am</label>
+                <input type="checkbox" id="th_4" value="04:00 PM" class="chip-input"><label for="th_4" class="chip-label">4 pm</label>
+                <input type="checkbox" id="th_6" value="06:30 PM" class="chip-input"><label for="th_6" class="chip-label">6:30 pm</label>
+            </div>
+
+            <div style="background:#f1f3f4; padding:16px; border-radius:20px; margin-top:15px;">
+                <div class="form-group"><label>Subterritorio (Opcional)</label><input type="text" id="tsNombre" placeholder="Calle/Zona específica"></div>
+                <label>Días y Horas Subterritorio</label>
+                <div class="chip-grid" style="margin-top:8px;">
+                    <input type="checkbox" id="ts_l" value="LUN" class="chip-input"><label for="ts_l" class="chip-label">LUN</label>
+                    <input type="checkbox" id="ts_ma" value="MAR" class="chip-input"><label for="ts_ma" class="chip-label">MAR</label>
+                    <input type="checkbox" id="ts_mi" value="MIÉ" class="chip-input"><label for="ts_mi" class="chip-label">MIÉ</label>
+                    <input type="checkbox" id="ts_j" value="JUE" class="chip-input"><label for="ts_j" class="chip-label">JUE</label>
+                    <input type="checkbox" id="ts_v" value="VIE" class="chip-input"><label for="ts_v" class="chip-label">VIE</label>
+                    <input type="checkbox" id="ts_s" value="SÁB" class="chip-input"><label for="ts_s" class="chip-label">SÁB</label>
+                    <input type="checkbox" id="ts_d" value="DOM" class="chip-input"><label for="ts_d" class="chip-label">DOM</label>
+                </div>
+                <div class="chip-grid" style="margin-top:8px;">
+                    <input type="checkbox" id="tsh_9" value="09:00 AM" class="chip-input"><label for="tsh_9" class="chip-label">9 am</label>
+                    <input type="checkbox" id="tsh_4" value="04:00 PM" class="chip-input"><label for="tsh_4" class="chip-label">4 pm</label>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn-outline" onclick="closeModal('modalTerritorio')">Cerrar</button>
+                <button type="submit" class="btn-fab">Guardar</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- MODAL HISTORIAL -->
+<div id="modalHistorial" class="modal">
+    <div class="modal-content">
+        <h2 class="section-title">Agendas Guardadas</h2>
+        <div id="historialLista"></div>
+        <div class="modal-footer"><button type="button" class="btn-outline" onclick="closeModal('modalHistorial')">Cerrar</button></div>
+    </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script>
+    // --- ESTADO ---
+    let db = { conductores: [], territorios: [], historial: {} };
+    let agendaTemp = [];
+
+    const MESES = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
+    const HORARIOS_MAESTROS = {
+        "LUN": ["09:00 AM", "04:00 PM", "06:30 PM"], "MAR": ["09:00 AM", "04:00 PM", "06:30 PM"],
+        "MIÉ": ["09:00 AM", "06:30 PM"], "JUE": ["09:00 AM", "04:00 PM", "06:30 PM"],
+        "VIE": ["09:00 AM", "04:00 PM", "06:30 PM"], "SÁB": ["09:00 AM"], "DOM": ["09:00 AM"]
+    };
+
+    // --- INICIO ---
+    window.onload = () => {
+        const local = localStorage.getItem('vdm_pro_data');
+        if(local) db = JSON.parse(local);
+        renderConductores();
+        renderTerritorios();
+        renderGrupos();
+    };
+
+    function save() { localStorage.setItem('vdm_pro_data', JSON.stringify(db)); }
+
+    function switchTab(id) {
+        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+        document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+        event.currentTarget.classList.add('active');
+    }
+
+    function openModal(id) { document.getElementById(id).style.display = 'flex'; }
+    function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+
+    // --- CRUD CONDUCTORES ---
+    function abrirConductor(idx = null) {
+        const f = document.getElementById('formConductor');
+        f.reset();
+        document.getElementById('cId').value = idx !== null ? idx : "";
+        document.getElementById('cBoxGrupo').classList.add('hidden');
+        if(idx !== null) {
+            const c = db.conductores[idx];
+            document.getElementById('cNombre').value = c.nombre;
+            document.getElementById('cApellido').value = c.apellido;
+            document.getElementById('cTel').value = c.telefono;
+            document.getElementById('cEsAnciano').checked = c.anciano;
+            document.getElementById('cGrupo').value = c.grupo || 1;
+            document.getElementById('cFechaSi').value = c.fechaSi || "";
+            document.getElementById('cFechaNo').value = c.fechaNo || "";
+            if(c.anciano) document.getElementById('cBoxGrupo').classList.remove('hidden');
+            (c.disp || []).forEach(d => {
+                const cb = f.querySelector(`input[value="${d}"]`);
+                if(cb) cb.checked = true;
+            });
+        }
+        openModal('modalConductor');
+    }
+
+    document.getElementById('cEsAnciano').onchange = (e) => {
+        document.getElementById('cBoxGrupo').classList.toggle('hidden', !e.target.checked);
+    };
+
+    document.getElementById('formConductor').onsubmit = (e) => {
+        e.preventDefault();
+        const id = document.getElementById('cId').value;
+        const disp = Array.from(e.target.querySelectorAll('.chip-input:checked')).map(cb => cb.value);
+        const data = {
+            nombre: document.getElementById('cNombre').value,
+            apellido: document.getElementById('cApellido').value,
+            telefono: document.getElementById('cTel').value,
+            anciano: document.getElementById('cEsAnciano').checked,
+            grupo: document.getElementById('cEsAnciano').checked ? document.getElementById('cGrupo').value : null,
+            fechaSi: document.getElementById('cFechaSi').value,
+            fechaNo: document.getElementById('cFechaNo').value,
+            disp: disp
+        };
+        if(id === "") db.conductores.push(data); else db.conductores[id] = data;
+        save(); renderConductores(); renderGrupos(); closeModal('modalConductor');
+    };
+
+    function renderConductores() {
+        const cont = document.getElementById('listaConductores');
+        cont.innerHTML = db.conductores.map((c, i) => `
+            <div class="card" style="padding:12px; display:flex; justify-content:space-between; align-items:center;">
+                <div>
+                    <b>${c.nombre} ${c.apellido}</b> ${c.anciano ? '<span style="color:var(--google-blue); font-size:0.7rem; font-weight:700;">(ANCIANO G'+c.grupo+')</span>' : ''}
+                    <br><small style="color:var(--text-secondary);">${c.telefono}</small>
+                </div>
+                <div style="display:flex; gap:8px;">
+                    <button class="btn-outline" onclick="abrirConductor(${i})">Edit</button>
+                    <button class="btn-danger" onclick="eliminarC(${i})">X</button>
+                </div>
+            </div>
+        `).join('');
+    }
+    function eliminarC(i) { if(confirm("¿Borrar?")) { db.conductores.splice(i,1); save(); renderConductores(); renderGrupos(); } }
+
+    // --- CRUD TERRITORIOS ---
+    function abrirTerritorio(idx = null) {
+        const f = document.getElementById('formTerritorio');
+        f.reset();
+        document.getElementById('tId').value = idx !== null ? idx : "";
+        if(idx !== null) {
+            const t = db.territorios[idx];
+            document.getElementById('tNum').value = t.num;
+            document.getElementById('tNom').value = t.nom;
+            document.getElementById('tLug').value = t.lug || "";
+            document.getElementById('tsNombre').value = t.subNom || "";
+            (t.dias || []).forEach(d => { const cb = f.querySelector(`#t_${d.toLowerCase().replace('é','e')}`); if(cb) cb.checked = true; });
+            (t.horas || []).forEach(h => { const cb = f.querySelector(`input[value="${h}"]`); if(cb) cb.checked = true; });
+            (t.subDias || []).forEach(d => { const cb = f.querySelector(`#ts_${d.toLowerCase().replace('é','e')}`); if(cb) cb.checked = true; });
+            (t.subHoras || []).forEach(h => { const cb = f.querySelector(`input[id="tsh_${h.includes('9')?'9':'4'}"]`); if(cb) cb.checked = true; });
+        }
+        openModal('modalTerritorio');
+    }
+
+    document.getElementById('formTerritorio').onsubmit = (e) => {
+        e.preventDefault();
+        const id = document.getElementById('tId').value;
+        const dias = Array.from(document.querySelectorAll('#tDias input:checked')).map(cb => cb.value);
+        const horas = Array.from(document.querySelectorAll('#thHoras input:checked')).map(cb => cb.value);
+        const subDias = Array.from(document.querySelectorAll('#tsDias input:checked')).map(cb => cb.value);
+        const subHoras = Array.from(document.querySelectorAll('#tshHoras input:checked')).map(cb => cb.value);
+        
+        const data = {
+            num: document.getElementById('tNum').value,
+            nom: document.getElementById('tNom').value,
+            lug: document.getElementById('tLug').value,
+            dias: dias,
+            horas: horas,
+            subNom: document.getElementById('tsNombre').value,
+            subDias: subDias,
+            subHoras: subHoras
+        };
+        if(id === "") db.territorios.push(data); else db.territorios[id] = data;
+        save(); renderTerritorios(); closeModal('modalTerritorio');
+    };
+
+    function renderTerritorios() {
+        const cont = document.getElementById('listaTerritorios');
+        cont.innerHTML = db.territorios.map((t, i) => `
+            <div class="card" style="padding:12px; display:flex; justify-content:space-between; align-items:center;">
+                <div>
+                    <b>${t.num}. ${t.nom}</b> ${t.subNom ? '<br><small class="btn-outline" style="font-size:0.6rem; padding:2px 6px;">SUB: '+t.subNom+'</small>' : ''}
+                </div>
+                <div style="display:flex; gap:8px;">
+                    <button class="btn-outline" onclick="abrirTerritorio(${i})">Edit</button>
+                    <button class="btn-danger" onclick="eliminarT(${i})">X</button>
+                </div>
+            </div>
+        `).join('');
+    }
+    function eliminarT(i) { if(confirm("¿Borrar?")) { db.territorios.splice(i,1); save(); renderTerritorios(); } }
+
+    // --- GRUPOS (8 FIJOS) ---
+    function renderGrupos() {
+        const cont = document.getElementById('listaGrupos8');
+        cont.innerHTML = '';
+        for(let i=1; i<=8; i++) {
+            const ancianos = db.conductores.filter(c => c.anciano && parseInt(c.grupo) === i);
+            cont.innerHTML += `
+                <div class="group-card">
+                    <h3>Grupo ${i}</h3>
+                    <p>${ancianos.length > 0 ? ancianos.map(a => a.nombre).join(', ') : 'Sin Anciano'}</p>
+                </div>
+            `;
+        }
+    }
+
+    // --- MOTOR DE GENERACIÓN ---
+    function generarAgenda() {
+        const mesIdx = parseInt(document.getElementById('mesAgenda').value);
+        const anio = 2026;
+        const diasEnMes = new Date(anio, mesIdx, 0).getDate();
+        const diasNombres = ["DOM", "LUN", "MAR", "MIÉ", "JUE", "VIE", "SÁB"];
+        
+        let nueva = [];
+        let contadorUsos = {};
+
+        for(let d=1; d<=diasEnMes; d++) {
+            const fecha = new Date(anio, mesIdx - 1, d);
+            const fechaIso = fecha.toISOString().split('T')[0];
+            const diaNom = diasNombres[fecha.getDay()];
+            const turnos = HORARIOS_MAESTROS[diaNom] || [];
+
+            turnos.forEach(hora => {
+                const bloque = hora.includes("PM") ? `${diaNom}-PM` : `${diaNom}-AM`;
+                
+                // Filtro Conductores: Bloque Semanal OR Fecha Sí - Excepto Fecha No
+                let conds = db.conductores.filter(c => {
+                    const prohibido = c.fechaNo === fechaIso;
+                    const forzado = c.fechaSi === fechaIso;
+                    const disponible = (c.disp || []).includes(bloque);
+                    return (forzado || disponible) && !prohibido;
+                });
+
+                conds.sort((a,b) => (contadorUsos[a.nombre]||0) - (contadorUsos[b.nombre]||0));
+                const c = conds[0] || null;
+                if(c) contadorUsos[c.nombre] = (contadorUsos[c.nombre]||0) + 1;
+
+                // Filtro Territorios
+                let terrSub = db.territorios.filter(t => t.subNom && (t.subDias||[]).includes(diaNom) && (t.subHoras||[]).includes(hora));
+                let terrPri = db.territorios.filter(t => (t.dias||[]).includes(diaNom) && (t.horas||[]).includes(hora));
+                
+                let tFinal = terrSub.length > 0 ? terrSub[Math.floor(Math.random()*terrSub.length)] : (terrPri[Math.floor(Math.random()*terrPri.length)] || null);
+                
+                let nTerr = "Sin Territorio";
+                let nLug = "Por Definir";
+                if(tFinal) {
+                    const esSub = (tFinal.subDias||[]).includes(diaNom) && (tFinal.subHoras||[]).includes(hora);
+                    nTerr = esSub ? `${tFinal.num}. ${tFinal.nom} (${tFinal.subNom})` : `${tFinal.num}. ${tFinal.nom}`;
+                    nLug = tFinal.lug || "Punto de Reunión";
+                }
+
+                nueva.push({ diaNom, diaMes: d, hora, conductor: c ? `${c.nombre} ${c.apellido}` : "Sin Asignar", territorio: nTerr, lugar: nLug });
+            });
+        }
+        agendaTemp = nueva;
+        document.getElementById('resAgenda').classList.remove('hidden');
+        renderTabla(nueva, MESES[mesIdx-1]);
+    }
+
+    function renderTabla(datos, mesNombre) {
+        document.getElementById('titCap').innerText = `Agenda Predicación - ${mesNombre} 2026`;
+        const cuerpo = document.getElementById('cuerpoAgenda');
+        cuerpo.innerHTML = '';
+        let uD = null;
+        datos.forEach(f => {
+            const tr = document.createElement('tr');
+            if(uD !== null && uD !== f.diaMes) tr.className = 'day-sep';
+            tr.innerHTML = `<td><b>${uD !== f.diaMes ? f.diaNom : ''}</b></td><td><b>${uD !== f.diaMes ? f.diaMes : ''}</b></td><td>${f.hora}</td><td>${f.conductor}</td><td>${f.territorio}</td><td>${f.lugar}</td>`;
+            cuerpo.appendChild(tr);
+            uD = f.diaMes;
+        });
+    }
+
+    function oficializarAgenda() {
+        const mes = document.getElementById('mesAgenda').value;
+        db.historial[mes] = JSON.parse(JSON.stringify(agendaTemp));
+        save();
+        alert("¡Mes guardado oficialmente!");
+    }
+
+    // --- EXPORTAR / IMPORTAR (SINC MANUAL) ---
+    function exportarDatos() {
+        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(db));
+        const dl = document.createElement('a');
+        dl.setAttribute("href", dataStr);
+        dl.setAttribute("download", `vdm_backup_${new Date().toISOString().split('T')[0]}.json`);
+        dl.click();
+    }
+
+    function importarDatos(e) {
+        const file = e.target.files[0];
+        if(!file) return;
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            try {
+                const json = JSON.parse(e.target.result);
+                if(json.conductores && json.territorios) {
+                    db = json;
+                    save();
+                    alert("¡Sincronización exitosa!");
+                    window.location.reload();
+                }
+            } catch(e) { alert("Archivo inválido."); }
+        };
+        reader.readAsText(file);
+    }
+
+    async function exportarImagen() {
+        const area = document.getElementById('captureArea');
+        const canvas = await html2canvas(area, { scale: 2 });
+        const link = document.createElement('a');
+        link.download = `Agenda_VDM.png`;
+        link.href = canvas.toDataURL();
+        link.click();
+    }
+</script>
+
+</body>
+</html>
+
